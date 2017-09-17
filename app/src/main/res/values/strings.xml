@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Template</string>
+
+    <string name="error.network">Приложению нужен доступ к интернету. Проверьте подключение и попробуйте снова.</string>
+    <string name="error.unexpected">Опаньки! Попробуйте выполнить действие позднее.</string>
+    <string name="loading">Загрузка…</string>
+
+    <string name="button.ok">Ок</string>
+    <string name="button.cancel">Отмена</string>
+    <string name="button.close">Закрыть</string>
+</resources>

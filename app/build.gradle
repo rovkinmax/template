@@ -1,0 +1,126 @@
+buildscript {
+    repositories {
+        jcenter()
+        google()
+    }
+
+    dependencies {
+        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.7.3'
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'com.getkeepsafe.dexcount'
+
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+    defaultConfig {
+        applicationId "ru.rovkinmax.template"
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
+        versionCode buildVersionCode()
+        versionName fetchVersionName()
+
+        vectorDrawables.useSupportLibrary = true
+
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('debug.jks')
+        }
+
+        release {
+            def keystorePropertiesFile = file("keystore.properties")
+            def keyFile = file('release.jks')
+
+            if (keystorePropertiesFile.exists() && keyFile.exists()) {
+                def keystoreProperties = new Properties()
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storePassword keystoreProperties['storePassword']
+                storeFile keyFile
+            } else {
+                storeFile file('debug.jks')
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+                storePassword 'android'
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+
+
+    flavorDimensions 'buildType'
+
+    productFlavors {
+        dev {
+            dimension 'buildType'
+            versionName = fetchVersionName() + "-$name"
+            applicationIdSuffix ".$name"
+        }
+
+        prod {
+            dimension 'buildType'
+        }
+    }
+}
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation "com.android.support:design:$versions.support"
+    implementation "com.android.support:appcompat-v7:$versions.support"
+    implementation "com.android.support:recyclerview-v7:$versions.support"
+
+    implementation "com.arello-mobile:moxy:$versions.moxy"
+    implementation "com.arello-mobile:moxy-app-compat:$versions.moxy"
+    kapt libraries.moxyCompiler
+
+    implementation libraries.rxJava
+    implementation libraries.rxAndroid
+    implementation libraries.kotlinStdlib
+
+
+    implementation "com.squareup.okhttp3:okhttp:$versions.okhttp"
+    implementation "com.squareup.retrofit2:retrofit:$versions.retrofit"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$versions.retrofit"
+    implementation "com.squareup.retrofit2:converter-gson:$versions.retrofit"
+    implementation "com.squareup.okhttp3:logging-interceptor:$versions.okhttp"
+
+    implementation 'com.jakewharton.timber:timber:4.1.2'
+
+}
+
+
+static def buildVersionCode() {
+    def date = new Date()
+    return date.format('yyyyMMddHH').toInteger()
+}
+
+static def fetchVersionName() {
+    //for example v1.0.0 or v0.1
+    def tag = 'git describe --tags'.execute().text.split('-').first()?.trim()
+    if (tag =~ /^v.*$/) {
+        return tag.substring(1)
+    }
+    return '1.0.0'
+}
